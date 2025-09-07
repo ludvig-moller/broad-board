@@ -1,3 +1,4 @@
+import Footer from "../components/Footer";
 
 function LandingPage() {
     return (
@@ -6,6 +7,7 @@ function LandingPage() {
             <p>
                 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempore quibusdam, ea dolorem nam fugit dignissimos sed error dolores unde officia placeat illum provident, voluptatum quos accusantium aliquid nisi recusandae praesentium.
             </p>
+            <Footer />
         </>
     );
 }
