@@ -1,10 +1,14 @@
 import { useParams } from "react-router-dom";
+import DrawCanvas from "../components/DrawCanvas";
 
 function Board() {
     const { boardId } = useParams();
 
     return (
-        <h1>Board: {boardId}</h1>
+        <>
+            <h2>{boardId}</h2>
+            <DrawCanvas />
+        </>
     );
 }
 
