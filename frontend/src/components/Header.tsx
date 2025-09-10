@@ -11,7 +11,7 @@ function Header() {
     return (
         <header>
             { isBoardPage && <a href="/">Leave</a> }
-            <h1>Broad Board</h1>
+            <h1>BroadBoard</h1>
             { isBoardPage && <button onClick={copyBoardLink}>Copy Board Link</button>}
         </header>
     );
