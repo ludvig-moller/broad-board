@@ -1,21 +1,17 @@
+import { useDrawContext } from "../context/DrawContext";
 
-interface Props {
-    setStrokeColor: React.Dispatch<React.SetStateAction<string>>;
-    setLineWidth: React.Dispatch<React.SetStateAction<number>>;
-    clearCanvas: () => void;
-    undoLastCanvasUpdate: () => void;
-}
+function DrawTools() {
+    const { setColor, setLineWidth } = useDrawContext();
 
-function DrawTools(props: Props) {
     return (
         <aside>
             <div>
-                <button onClick={() => props.setStrokeColor("black")}>Black</button>
-                <button onClick={() => props.setStrokeColor("red")}>Red</button>
-                <button onClick={() => props.setStrokeColor("green")}>Green</button>
-                <button onClick={() => props.setStrokeColor("blue")}>Blue</button>
+                <button onClick={() => setColor("black")}>Black</button>
+                <button onClick={() => setColor("red")}>Red</button>
+                <button onClick={() => setColor("green")}>Green</button>
+                <button onClick={() => setColor("blue")}>Blue</button>
             </div>
-            <input type="range" min={2} max={10} defaultValue={2} onChange={(e) => props.setLineWidth(Number(e.target.value))}/>
+            <input type="range" min={2} max={10} defaultValue={2} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLineWidth(Number(e.target.value))}/>
         </aside>
     );
 }

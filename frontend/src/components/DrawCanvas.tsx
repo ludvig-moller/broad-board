@@ -4,7 +4,7 @@ import type { Stroke } from "../types/stroke";
 import { v4 as uuidv4 } from "uuid";
 
 function DrawCanvas() {
-    const { strokes, addStroke, addPointToStroke } = useDrawContext();
+    const { strokes, color, lineWidth, addStroke, addPointToStroke } = useDrawContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [currentStrokeId, setCurrentStrokeId] = useState<string | null>(null);
 
@@ -54,8 +54,8 @@ function DrawCanvas() {
 
         const stroke: Stroke = {
             id,
-            color: "black",
-            lineWidth: 2,
+            color,
+            lineWidth,
             points: [point],
         }
 
