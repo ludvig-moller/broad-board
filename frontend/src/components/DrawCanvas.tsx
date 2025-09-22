@@ -1,113 +1,89 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useDrawContext } from "../context/DrawContext";
+import type { Stroke } from "../types/stroke";
+import { v4 as uuidv4 } from "uuid";
 
-interface Props {
-    strokeColor: string;
-    lineWidth: number;
-    setClearCanvas: React.Dispatch<React.SetStateAction<() => void>>;
-    setUndoLastCanvasUpdate: React.Dispatch<React.SetStateAction<() => void>>;
-}
-
-function DrawCanvas(props: Props) {
+function DrawCanvas() {
+    const { strokes, addStroke, addPointToStroke } = useDrawContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const ctxRef = useRef<CanvasRenderingContext2D>(null);
-
-    const [isDrawing, setIsDrawing] = useState(false);
-    const [restore, setRestore] = useState<ImageData[]>([]);
-
-    const strokeColor = props.strokeColor;
-    const lineWidth = props.lineWidth;
+    const [currentStrokeId, setCurrentStrokeId] = useState<string | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
-
-        if (!canvas) { return; }
+        if (!canvas) return;
 
         canvas.width = 1000;
         canvas.height = 600;
-
-        ctxRef.current = canvas.getContext("2d");
     }, []);
 
     useEffect(() => {
-        props.setClearCanvas(() => clear)
-        props.setUndoLastCanvasUpdate(() => undoLast)
-    }, [restore])
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        strokes.forEach((stroke: Stroke) => {
+            if (stroke.points.length <= 0) return;
+
+            ctx.beginPath();
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.lineWidth;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+
+            if (stroke.points.length <= 1) {
+                ctx.lineTo(stroke.points[0].x, stroke.points[0].y)
+            } else {
+                for (let i = 1; i < stroke.points.length; i++) {
+                    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+                }
+            }
+
+            ctx.stroke();
+        });
+    }, [strokes]);
 
     const startDrawing = (e: React.MouseEvent) => {
-        setIsDrawing(true);
-        
-        const canvas = canvasRef.current;
-        const ctx = ctxRef.current;
+        const id = uuidv4();
+        const point = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
 
-        if (!canvas || !ctx) { return; }
+        const stroke: Stroke = {
+            id,
+            color: "black",
+            lineWidth: 2,
+            points: [point],
+        }
 
-        ctx.beginPath();
-        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-
-        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = lineWidth;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.stroke();
-
-        e.preventDefault();
-    }
-
-    const stopDrawing = (e: React.MouseEvent) => {
-        const canvas = canvasRef.current;
-        const ctx = ctxRef.current;
-
-        if (!isDrawing || !ctx || !canvas) { return; }
-
-        setIsDrawing(false);
-
-        ctx.stroke();
-        ctx.closePath();
-        e.preventDefault();
-
-        setRestore([...restore, ctx.getImageData(0, 0, canvas.width, canvas.height)])
-    }
+        addStroke(stroke);
+        setCurrentStrokeId(id);
+    };
 
     const draw = (e: React.MouseEvent) => {
-        const canvas = canvasRef.current;
-        const ctx = ctxRef.current;
+        if (!currentStrokeId) return;
 
-        if (!isDrawing || !canvas || !ctx ) { return; }
+        const point = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+        addPointToStroke(currentStrokeId, point);
+    };
 
-        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+    const mouseOut = (e: React.MouseEvent) => {
+        if (!currentStrokeId) return;
 
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = lineWidth;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.stroke();
-    }
+        const point = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+        addPointToStroke(currentStrokeId, point);
 
-    const clear = () => {
-        const canvas = canvasRef.current;
-        const ctx = ctxRef.current;
+        stopDrawing();
+    };
 
-        if (!canvas || !ctx ) { return; }
-
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        setRestore([]);
-    }
-
-    const undoLast = () => {
-        const ctx = ctxRef.current;
-
-        if (!ctx || restore.length == 0) { return; }
-
-        if (restore.length == 1) {
-            clear();
-        } else {
-            ctx.putImageData(restore[restore.length-2], 0, 0);
-            setRestore(restore.splice(0, restore.length-1));
+    const stopDrawing = () => {
+        if (currentStrokeId) {
+            setCurrentStrokeId(null);
         }
-    }
+    };
 
     return (
         <div>
@@ -115,7 +91,7 @@ function DrawCanvas(props: Props) {
                 ref={canvasRef}
                 onMouseDown={startDrawing}
                 onMouseUp={stopDrawing}
-                onMouseOut={stopDrawing}
+                onMouseOut={mouseOut}
                 onMouseMove={draw}
             />
         </div>
