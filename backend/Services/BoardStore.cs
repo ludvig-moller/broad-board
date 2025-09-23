@@ -1,7 +1,6 @@
-﻿namespace backend.Services
+﻿namespace backend.Services;
+
+public static class BoardStore
 {
-    public static class BoardStore
-    {
-        public static Dictionary<String, Models.Board> Boards { get; } = [];
-    }
+    public static Dictionary<String, Models.Board> Boards { get; } = [];
 }
