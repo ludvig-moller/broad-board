@@ -6,7 +6,6 @@ public class Point {
 }
 public class Stroke
 {
-    public required string UserId { get; set; }
     public required string Id { get; set; }
     public required string Color { get; set; }
     public required int LineWidth { get; set; }
