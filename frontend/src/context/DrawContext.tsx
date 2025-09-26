@@ -48,7 +48,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
     const addPointToStroke = useCallback((id: string, point: Point, source: "local" | "remote" = "local") => {
         setStrokes((prev) => 
             prev.map(stroke => 
-                stroke.id == id ? { ...stroke, points: [...stroke.points, point] } : stroke
+                stroke.id === id ? { ...stroke, points: [...stroke.points, point] } : stroke
             )
         );
 
