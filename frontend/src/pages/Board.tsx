@@ -6,10 +6,12 @@ import DrawTools from "../components/DrawTools";
 function Board() {
     const { boardId } = useParams();
 
+    if (!boardId) return; // Redirect to home page?
+
     return (
         <>
             <h2>{boardId}</h2>
-            <DrawProvider>
+            <DrawProvider boardId={boardId}>
                 <DrawCanvas />
                 <DrawTools />
             </DrawProvider>

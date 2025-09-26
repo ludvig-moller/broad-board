@@ -1,6 +1,6 @@
-
-import { createContext, useContext, useState} from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import type { Stroke, Point } from "../types/stroke";
+import { BoardWebSocket } from "../services/boardWebSocket";
 
 type DrawContextType = {
     strokes: Stroke[];
@@ -14,25 +14,65 @@ type DrawContextType = {
 
 const DrawContext = createContext<DrawContextType | undefined>(undefined);
 
-export const DrawProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface DrawProviderProps {
+    children: React.ReactNode;
+    boardId: string;
+}
+
+export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId }) => {
     const [strokes, setStrokes] = useState<Stroke[]>([]);
     const [color, setColor] = useState<string>("black");
     const [lineWidth, setLineWidth] = useState<number>(2);
+    const webSocketRef = useRef<BoardWebSocket | null>(null);
 
-    const addStroke = (stroke: Stroke) => {
+    useEffect(() => {
+        const webSocket = new BoardWebSocket(boardId, {
+            onStrokeAdded: (stroke) => {
+                setStrokes((prev) => [...prev, stroke]);
+            },
+            onPointAddedToStroke: (strokeId, point) => {
+                setStrokes((prev) => 
+                    prev.map(stroke => 
+                        stroke.id == strokeId ? { ...stroke, points: [...stroke.points, point] } : stroke
+                    )
+                );
+            }
+        });
+
+        webSocketRef.current = webSocket;
+        webSocket.connect();
+
+        return () => webSocket.disconnect();
+    }, [boardId])
+
+    const addStroke = useCallback((stroke: Stroke) => {
         setStrokes((prev) => [...prev, stroke]);
-    };
 
-    const addPointToStroke = (id: string, point: Point) => {
+        webSocketRef.current?.sendAddStroke(stroke);
+    }, []);
+
+    const addPointToStroke = useCallback((id: string, point: Point) => {
         setStrokes((prev) => 
             prev.map(stroke => 
                 stroke.id == id ? { ...stroke, points: [...stroke.points, point] } : stroke
             )
         );
-    };
+
+        webSocketRef.current?.sendAddPointToStroke(id, point);
+    }, []);
+
+    const value: DrawContextType = {
+        strokes, 
+        color, 
+        setColor, 
+        lineWidth, 
+        setLineWidth, 
+        addStroke, 
+        addPointToStroke
+    }
 
     return (
-        <DrawContext.Provider value={{ strokes, color, setColor, lineWidth, setLineWidth, addStroke, addPointToStroke }}>
+        <DrawContext.Provider value={value}>
             { children }
         </DrawContext.Provider>
     );

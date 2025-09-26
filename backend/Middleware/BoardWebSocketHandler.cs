@@ -39,7 +39,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
 
         board.Clients.Add(clientSocket);
 
-        var initPayload = JsonSerializer.Serialize(new { type = "init", strokes = board.Strokes });
+        var initPayload = JsonSerializer.Serialize(new { Type = "init", board.Strokes }, Config.Json.Options);
         await clientSocket.SendAsync(Encoding.UTF8.GetBytes(initPayload), WebSocketMessageType.Text, true, CancellationToken.None);
 
         await ReciveLoop(clientSocket, board);
@@ -84,13 +84,13 @@ public class BoardWebSocketHandler(RequestDelegate next)
 
         if (message == null) return;
 
-        switch (message.Type.ToLower()) 
+        switch (message.Type) 
         {
-            case "addstroke":
+            case "addStroke":
                 await HandleAddStroke(clientSocket, message, board);
                 break;
 
-            case "addpointtostroke":
+            case "addPointToStroke":
                 await HandleAddPointToStroke(clientSocket, message, board);
                 break;
 
@@ -120,7 +120,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
 
     private static async Task BroadCastToOthers(List<WebSocket> clients, WebSocket sender, BoardMessage message)
     {
-        var payload = JsonSerializer.Serialize(message);
+        var payload = JsonSerializer.Serialize(message, Config.Json.Options);
         var bytes = Encoding.UTF8.GetBytes(payload);
 
         foreach (var client in clients.Where(c => c != sender && c.State == WebSocketState.Open)) 
