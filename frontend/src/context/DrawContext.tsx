@@ -27,16 +27,8 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
 
     useEffect(() => {
         const webSocket = new BoardWebSocket(boardId, {
-            onStrokeAdded: (stroke) => {
-                setStrokes((prev) => [...prev, stroke]);
-            },
-            onPointAddedToStroke: (strokeId, point) => {
-                setStrokes((prev) => 
-                    prev.map(stroke => 
-                        stroke.id == strokeId ? { ...stroke, points: [...stroke.points, point] } : stroke
-                    )
-                );
-            }
+            onStrokeAdded: (stroke) => addStroke(stroke, "remote"),
+            onPointAddedToStroke: (strokeId, point) => addPointToStroke(strokeId, point, "remote"),
         });
 
         webSocketRef.current = webSocket;
@@ -45,20 +37,24 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         return () => webSocket.disconnect();
     }, [boardId])
 
-    const addStroke = useCallback((stroke: Stroke) => {
+    const addStroke = useCallback((stroke: Stroke, source: "local" | "remote" = "local") => {
         setStrokes((prev) => [...prev, stroke]);
 
-        webSocketRef.current?.sendAddStroke(stroke);
+        if (source === "local") {
+            webSocketRef.current?.sendAddStroke(stroke);
+        }
     }, []);
 
-    const addPointToStroke = useCallback((id: string, point: Point) => {
+    const addPointToStroke = useCallback((id: string, point: Point, source: "local" | "remote" = "local") => {
         setStrokes((prev) => 
             prev.map(stroke => 
                 stroke.id == id ? { ...stroke, points: [...stroke.points, point] } : stroke
             )
         );
 
-        webSocketRef.current?.sendAddPointToStroke(id, point);
+        if (source === "local") {
+            webSocketRef.current?.sendAddPointToStroke(id, point);
+        }
     }, []);
 
     const value: DrawContextType = {
