@@ -39,7 +39,8 @@ public class BoardWebSocketHandler(RequestDelegate next)
 
         board.Clients.Add(clientSocket);
 
-        var initPayload = JsonSerializer.Serialize(new { Type = "init", board.Strokes }, Config.Json.Options);
+        BoardMessage initMessage = new() { Type = "init", Strokes = board.Strokes };
+        var initPayload = JsonSerializer.Serialize(initMessage, Config.Json.Options);
         await clientSocket.SendAsync(Encoding.UTF8.GetBytes(initPayload), WebSocketMessageType.Text, true, CancellationToken.None);
 
         await ReciveLoop(clientSocket, board);
@@ -47,7 +48,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         board.Clients.Remove(clientSocket);
     }
 
-    private async Task ReciveLoop(WebSocket clientSocket, Board board)
+    private static async Task ReciveLoop(WebSocket clientSocket, Board board)
     {
         var buffer = new byte[4096];
         while (clientSocket.State == WebSocketState.Open) 
@@ -69,7 +70,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         }
     }
 
-    private async Task HandleMessage(WebSocket clientSocket, string messageString, Board board)
+    private static async Task HandleMessage(WebSocket clientSocket, string messageString, Board board)
     {
         BoardMessage? message;
         try
@@ -78,7 +79,9 @@ public class BoardWebSocketHandler(RequestDelegate next)
         }
         catch
         {
-            // Handle invalid JSON
+            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Got invalid JSON." };
+            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
+            await clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
             return;
         }
 
@@ -95,23 +98,35 @@ public class BoardWebSocketHandler(RequestDelegate next)
                 break;
 
             default:
-
+                BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Got a unknown type needs to be addStroke or addPointToStroke" };
+                var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
+                await clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
                 break;
         }
     }
 
-    private Task HandleAddStroke(WebSocket clientSocket, BoardMessage message, Board board)
+    private static Task HandleAddStroke(WebSocket clientSocket, BoardMessage message, Board board)
     { 
-        // Handle errors
+        if (message.Stroke == null) 
+        {
+            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Type addStroke needs a stroke value but didn't get one." };
+            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
+            return clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
+        };
 
         board.AddStroke(message.Stroke);
 
         return BroadCastToOthers(board.Clients, clientSocket, message);
     }
 
-    private Task HandleAddPointToStroke(WebSocket clientSocket, BoardMessage message, Board board)
+    private static Task HandleAddPointToStroke(WebSocket clientSocket, BoardMessage message, Board board)
     {
-        // Handle errors
+        if (message.StrokeId == null || message.Point == null)
+        {
+            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Type addPointToStroke needs a strokeId and point value but didn't get them." };
+            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
+            return clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
+        };
 
         board.AddPointToStroke(message.StrokeId, message.Point);
 
