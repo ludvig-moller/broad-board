@@ -1,7 +1,8 @@
 import type { Stroke, Point } from "../types/stroke";
 
 export interface BoardMessage {
-    type: "init" | "addStroke" | "addPointToStroke";
+    type: "init" | "addStroke" | "addPointToStroke" | "error";
+    errorMessage?: string;
     strokes?: Stroke[];
     stroke?: Stroke;
     strokeId?: string;
@@ -60,7 +61,10 @@ export class BoardWebSocket {
     private handleMessage(message: BoardMessage): void {
         switch (message.type) {
             case "init":
-                if (!message.strokes) return;
+                if (!message.strokes) {
+                    console.warn("Recived board message type init without strokes.")
+                    return;
+                }
 
                 message.strokes.forEach(stroke => {
                     this.callbacks.onStrokeAdded?.(stroke);
@@ -68,15 +72,34 @@ export class BoardWebSocket {
                 break;
 
             case "addStroke":
-                if (!message.stroke) return;
+                if (!message.stroke) {
+                    console.warn("Recived board message type addStroke without a stroke.")
+                    return;
+                }
 
                 this.callbacks.onStrokeAdded?.(message.stroke);
                 break;
 
             case "addPointToStroke":
-                if (!message.strokeId || !message.point) return;
+                if (!message.strokeId || !message.point) {
+                    console.warn("Recived board message type addPointToStroke without strokeId or point.")
+                    return;
+                }
 
                 this.callbacks.onPointAddedToStroke?.(message.strokeId, message.point);
+                break;
+
+            case "error":
+                if (!message.errorMessage) {
+                    console.warn("Recived board message type error without errorMessage.")
+                    return;
+                }
+
+                console.log(message.errorMessage);
+                break;
+
+            default:
+                console.warn(`Recived board message with unkown type. Type: ${message.type}`)
                 break;
         }
     }
