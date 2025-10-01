@@ -33,7 +33,7 @@ export class BoardWebSocket {
             this.ws = new WebSocket(fullUrl);
             this.setupEventListeners();
         } catch (err) {
-            console.log("Failed to create WebSocket connection: ", err);
+            console.warn("Failed to create WebSocket connection: ", err);
         }
     }
 
@@ -49,7 +49,7 @@ export class BoardWebSocket {
                 const message: BoardMessage = JSON.parse(e.data);
                 this.handleMessage(message);
             } catch (err) {
-                console.log("Failed to parse WebSocket message: ", err);
+                console.warn("Failed to parse WebSocket message: ", err);
             }
         }
 
@@ -62,7 +62,7 @@ export class BoardWebSocket {
         switch (message.type) {
             case "init":
                 if (!message.strokes) {
-                    console.warn("Recived board message type init without strokes.")
+                    console.warn("Recived board message type init without strokes.");
                     return;
                 }
 
@@ -73,7 +73,7 @@ export class BoardWebSocket {
 
             case "addStroke":
                 if (!message.stroke) {
-                    console.warn("Recived board message type addStroke without a stroke.")
+                    console.warn("Recived board message type addStroke without a stroke.");
                     return;
                 }
 
@@ -82,7 +82,7 @@ export class BoardWebSocket {
 
             case "addPointToStroke":
                 if (!message.strokeId || !message.point) {
-                    console.warn("Recived board message type addPointToStroke without strokeId or point.")
+                    console.warn("Recived board message type addPointToStroke without strokeId or point.");
                     return;
                 }
 
@@ -91,7 +91,7 @@ export class BoardWebSocket {
 
             case "error":
                 if (!message.errorMessage) {
-                    console.warn("Recived board message type error without errorMessage.")
+                    console.warn("Recived board message type error without errorMessage.");
                     return;
                 }
 
@@ -99,7 +99,7 @@ export class BoardWebSocket {
                 break;
 
             default:
-                console.warn(`Recived board message with unkown type. Type: ${message.type}`)
+                console.warn(`Recived board message with unkown type. Type: ${message.type}`);
                 break;
         }
     }
@@ -110,7 +110,7 @@ export class BoardWebSocket {
             stroke,
         };
 
-        this.send(message)
+        this.send(message);
     }
 
     sendAddPointToStroke(strokeId: string, point: Point): void {
