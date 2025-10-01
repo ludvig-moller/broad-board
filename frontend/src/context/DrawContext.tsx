@@ -10,6 +10,7 @@ type DrawContextType = {
     setLineWidth: React.Dispatch<React.SetStateAction<number>>;
     addStroke: (stroke: Stroke) => void;
     addPointToStroke: (id: string, point: Point) => void;
+    clearBoard: () => void;
 }
 
 const DrawContext = createContext<DrawContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         const webSocket = new BoardWebSocket(boardId, {
             onStrokeAdded: (stroke) => addStroke(stroke, "remote"),
             onPointAddedToStroke: (strokeId, point) => addPointToStroke(strokeId, point, "remote"),
+            onClearBoard: () => clearBoard("remote"),
         });
 
         webSocketRef.current = webSocket;
@@ -57,6 +59,14 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         }
     }, []);
 
+    const clearBoard = useCallback((source: "local" | "remote" = "local") => {
+        setStrokes([]);
+
+        if (source === "local") {
+            webSocketRef.current?.sendClearBoard();
+        }
+    }, []);
+
     const value: DrawContextType = {
         strokes, 
         color, 
@@ -64,7 +74,8 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         lineWidth, 
         setLineWidth, 
         addStroke, 
-        addPointToStroke
+        addPointToStroke,
+        clearBoard,
     }
 
     return (

@@ -1,7 +1,7 @@
 import { useDrawContext } from "../context/DrawContext";
 
 function DrawTools() {
-    const { setColor, setLineWidth } = useDrawContext();
+    const { setColor, setLineWidth, clearBoard } = useDrawContext();
 
     return (
         <aside>
@@ -12,6 +12,7 @@ function DrawTools() {
                 <button onClick={() => setColor("blue")}>Blue</button>
             </div>
             <input type="range" min={2} max={10} defaultValue={2} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLineWidth(Number(e.target.value))}/>
+            <button onClick={() => clearBoard()}>Clear</button>
         </aside>
     );
 }

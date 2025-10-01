@@ -1,7 +1,7 @@
 import type { Stroke, Point } from "../types/stroke";
 
 export interface BoardMessage {
-    type: "init" | "addStroke" | "addPointToStroke" | "error";
+    type: "init" | "addStroke" | "addPointToStroke" | "clearBoard" | "error";
     errorMessage?: string;
     strokes?: Stroke[];
     stroke?: Stroke;
@@ -12,6 +12,7 @@ export interface BoardMessage {
 export interface BoardWebSocketCallbacks {
     onStrokeAdded?: (stroke: Stroke) => void;
     onPointAddedToStroke?: (strokeId: string, point: Point) => void;
+    onClearBoard?: () => void;
 }
 
 export class BoardWebSocket {
@@ -89,6 +90,10 @@ export class BoardWebSocket {
                 this.callbacks.onPointAddedToStroke?.(message.strokeId, message.point);
                 break;
 
+            case "clearBoard":
+                this.callbacks.onClearBoard?.();
+                break;
+
             case "error":
                 if (!message.errorMessage) {
                     console.warn("Recived board message type error without errorMessage.");
@@ -119,6 +124,14 @@ export class BoardWebSocket {
             strokeId,
             point,
         };
+
+        this.send(message);
+    }
+
+    sendClearBoard(): void {
+        const message: BoardMessage = {
+            type: "clearBoard",
+        }
 
         this.send(message);
     }
