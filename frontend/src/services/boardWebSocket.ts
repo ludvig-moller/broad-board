@@ -33,7 +33,7 @@ export class BoardWebSocket {
             this.ws = new WebSocket(fullUrl);
             this.setupEventListeners();
         } catch (err) {
-            console.warn("Failed to create WebSocket connection: ", err);
+            console.error("Failed to create WebSocket connection: ", err);
         }
     }
 
@@ -49,7 +49,7 @@ export class BoardWebSocket {
                 const message: BoardMessage = JSON.parse(e.data);
                 this.handleMessage(message);
             } catch (err) {
-                console.warn("Failed to parse WebSocket message: ", err);
+                console.error("Failed to parse WebSocket message: ", err);
             }
         }
 
