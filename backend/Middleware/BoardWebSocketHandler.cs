@@ -97,6 +97,10 @@ public class BoardWebSocketHandler(RequestDelegate next)
                 await HandleAddPointToStroke(clientSocket, message, board);
                 break;
 
+            case "clearBoard":
+                await HandleClearBoard(clientSocket, message, board);
+                break;
+
             default:
                 BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Got a unknown type needs to be addStroke or addPointToStroke" };
                 var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
@@ -129,6 +133,13 @@ public class BoardWebSocketHandler(RequestDelegate next)
         };
 
         board.AddPointToStroke(message.StrokeId, message.Point);
+
+        return BroadCastToOthers(board.Clients, clientSocket, message);
+    }
+
+    private static Task HandleClearBoard(WebSocket clientSocket, BoardMessage message, Board board)
+    {
+        board.ClearBoard();
 
         return BroadCastToOthers(board.Clients, clientSocket, message);
     }

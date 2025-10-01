@@ -21,4 +21,9 @@ public class Board
         stroke.Points.Add(point);
         return true;
     }
+
+    public void ClearBoard()
+    {
+        Strokes.Clear();
+    }
 }
