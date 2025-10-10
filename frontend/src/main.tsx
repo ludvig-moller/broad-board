@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
+
+import "./styles/main.scss"
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
 import Board from './pages/Board'

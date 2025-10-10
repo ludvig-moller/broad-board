@@ -5,14 +5,14 @@ function Header() {
     const isBoardPage = location.pathname != "/";
 
     const copyBoardLink = () => {
-        navigator.clipboard.writeText(window.location.href)
+        navigator.clipboard.writeText(window.location.href);
     }
 
     return (
-        <header>
-            { isBoardPage && <a href="/">Leave</a> }
-            <h1>BroadBoard</h1>
-            { isBoardPage && <button onClick={copyBoardLink}>Copy Board Link</button>}
+        <header className="header">
+            <h1 className="title">BroadBoard</h1>
+            { isBoardPage && <a className="btn home-link" href="/">Leave</a> }
+            { isBoardPage && <button className="btn copy-board-link" onClick={copyBoardLink}>Copy Board Link</button>}
         </header>
     );
 }
