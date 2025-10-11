@@ -6,6 +6,7 @@ import "./styles/main.scss"
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
 import Board from './pages/Board'
+import NonValidRoute from './pages/NonValidRoute'
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,7 @@ const router = createBrowserRouter([
     children: [
       {path: "/", element: <LandingPage />},
       {path: "/:boardId", element: <Board />},
+      {path: "*", element: <NonValidRoute />}
     ],
   },
 ]);
