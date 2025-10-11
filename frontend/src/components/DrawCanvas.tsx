@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useDrawContext } from "../context/DrawContext";
-import type { Stroke } from "../types/stroke";
+import type { Point, Stroke } from "../types/stroke";
 import { v4 as uuidv4 } from "uuid";
 
 function DrawCanvas() {
@@ -49,8 +49,11 @@ function DrawCanvas() {
     }, [strokes]);
 
     const startDrawing = (e: React.MouseEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
         const id = uuidv4();
-        const point = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+        const point = getScaledCoordinates(e, canvas);
 
         const stroke: Stroke = {
             id,
@@ -64,16 +67,18 @@ function DrawCanvas() {
     };
 
     const draw = (e: React.MouseEvent) => {
-        if (!currentStrokeId) return;
+        const canvas = canvasRef.current;
+        if (!canvas || !currentStrokeId) return;
 
-        const point = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+        const point = getScaledCoordinates(e, canvas);
         addPointToStroke(currentStrokeId, point);
     };
 
     const mouseOut = (e: React.MouseEvent) => {
-        if (!currentStrokeId) return;
+        const canvas = canvasRef.current;
+        if (!canvas || !currentStrokeId) return;
 
-        const point = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+        const point = getScaledCoordinates(e, canvas);
         addPointToStroke(currentStrokeId, point);
 
         stopDrawing();
@@ -86,8 +91,8 @@ function DrawCanvas() {
     };
 
     return (
-        <div>
-            <canvas
+        <div className="canvas-container">
+            <canvas className="draw-canvas"
                 ref={canvasRef}
                 onMouseDown={startDrawing}
                 onMouseUp={stopDrawing}
@@ -96,6 +101,18 @@ function DrawCanvas() {
             />
         </div>
     );
+}
+
+function getScaledCoordinates(e: React.MouseEvent, canvas: HTMLCanvasElement): Point {
+    const rect = e.currentTarget.getBoundingClientRect();
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    return {x, y};
 }
 
 export default DrawCanvas;

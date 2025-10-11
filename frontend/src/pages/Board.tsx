@@ -10,7 +10,6 @@ function Board() {
 
     return (
         <>
-            <h2>{boardId}</h2>
             <DrawProvider boardId={boardId}>
                 <DrawCanvas />
                 <DrawTools />
