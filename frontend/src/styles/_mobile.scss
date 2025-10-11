@@ -30,6 +30,37 @@ h1 {
     }
 }
 
+.slider {
+    appearance: none;
+    width: 100px;
+    height: 6px;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+        appearance: none;
+        margin-top: 2px;
+        width: 12px;
+        height: 12px;
+        background-color: black;
+        border-radius: 50%;
+    }
+
+    &::-webkit-slider-runnable-track {
+        height: 20px;
+        border: 2px solid black;
+        border-radius: 10px;
+    }
+
+    &:hover::-webkit-slider-thumb {
+        background-color: white;
+    }
+
+    &:hover::-webkit-slider-runnable-track {
+        background-color: black;
+        border-color: white;
+    }
+}
+
 .header {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -65,7 +96,7 @@ h1 {
     }
 }
 
-.canvas-container {
+.draw-canvas-container {
     display: flex;
     justify-content: center;
     width: 100%;
@@ -77,4 +108,46 @@ h1 {
     width: 100%;
     border: 2px solid black;
     border-radius: 10px;
+}
+
+.draw-tools-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-container {
+    display: flex;
+    gap: 10px;
+
+    .btn.color {
+        width: 35px;
+        border-color: lightgray;
+        border-radius: 50%;
+
+        &.active {
+            border-color: lightblue;
+        }
+
+        &:hover {
+            border-color: gray;
+        }
+        &.active:hover {
+            border-color: cyan;
+        }
+
+        &.black {
+            background-color: black;
+        }
+        &.red {
+            background-color: red;
+        }
+        &.green {
+            background-color: green;
+        }
+        &.blue {
+            background-color: blue;
+        }
+    }
 }

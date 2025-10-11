@@ -91,7 +91,7 @@ function DrawCanvas() {
     };
 
     return (
-        <div className="canvas-container">
+        <div className="draw-canvas-container">
             <canvas className="draw-canvas"
                 ref={canvasRef}
                 onMouseDown={startDrawing}
