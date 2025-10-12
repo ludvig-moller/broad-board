@@ -9,6 +9,7 @@ function DrawTools() {
             <div className="color-container">
                 {colors.map((c) => (
                     <button 
+                    key={c}
                     className={`btn color ${c} ${color === c ? "active" : ""}`} 
                     onClick={() => setColor(c)} />
                 ))}
