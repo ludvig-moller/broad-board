@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useDrawContext } from "../context/DrawContext";
 import type { Point, Stroke } from "../types/stroke";
-import { v4 as uuidv4 } from "uuid";
 
-function DrawCanvas() {
+// Remember! Fix prevent default for touch.
+
+export default function DrawCanvas() {
     const { strokes, color, lineWidth, addStroke, addPointToStroke } = useDrawContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [currentStrokeId, setCurrentStrokeId] = useState<string | null>(null);
@@ -48,71 +50,75 @@ function DrawCanvas() {
         });
     }, [strokes]);
 
-    const startDrawing = (e: React.MouseEvent) => {
+    const drawStart = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const id = uuidv4();
         const point = getScaledCoordinates(e, canvas);
+        if (!point) return;
+
+        const id = uuidv4();
 
         const stroke: Stroke = {
             id,
             color,
             lineWidth,
             points: [point],
-        }
+        };
 
         addStroke(stroke);
         setCurrentStrokeId(id);
-    };
+    }
 
-    const draw = (e: React.MouseEvent) => {
+    const drawMove = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current;
         if (!canvas || !currentStrokeId) return;
 
         const point = getScaledCoordinates(e, canvas);
+        if (!point) return;
+
         addPointToStroke(currentStrokeId, point);
-    };
+    }
 
-    const mouseOut = (e: React.MouseEvent) => {
-        const canvas = canvasRef.current;
-        if (!canvas || !currentStrokeId) return;
-
-        const point = getScaledCoordinates(e, canvas);
-        addPointToStroke(currentStrokeId, point);
-
-        stopDrawing();
-    };
-
-    const stopDrawing = () => {
+    const drawEnd = () => {
         if (currentStrokeId) {
             setCurrentStrokeId(null);
         }
-    };
+    }
 
     return (
         <div className="draw-canvas-container">
             <canvas className="draw-canvas"
                 ref={canvasRef}
-                onMouseDown={startDrawing}
-                onMouseUp={stopDrawing}
-                onMouseOut={mouseOut}
-                onMouseMove={draw}
+                onMouseDown={drawStart}
+                onTouchStart={drawStart}
+                onMouseMove={drawMove}
+                onTouchMove={drawMove}
+                onMouseUp={drawEnd}
+                onTouchEnd={drawEnd}
+                onMouseOut={(e) => { drawMove(e); drawEnd(); }}
             />
         </div>
     );
 }
 
-function getScaledCoordinates(e: React.MouseEvent, canvas: HTMLCanvasElement): Point {
+function getScaledCoordinates(e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement): Point | null {
     const rect = e.currentTarget.getBoundingClientRect();
 
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    if ("touches" in e && e.touches.length > 0) {
+        return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY,
+        }
+    } else if ("clientX" in e) {
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY,
+        }
+    }
 
-    return {x, y};
+    return null;
 }
-
-export default DrawCanvas;
