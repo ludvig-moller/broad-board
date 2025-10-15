@@ -3,8 +3,6 @@ import { v4 as uuidv4 } from "uuid";
 import { useDrawContext } from "../context/DrawContext";
 import type { Point, Stroke } from "../types/stroke";
 
-// Remember! Fix prevent default for touch.
-
 export default function DrawCanvas() {
     const { strokes, color, lineWidth, addStroke, addPointToStroke } = useDrawContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);

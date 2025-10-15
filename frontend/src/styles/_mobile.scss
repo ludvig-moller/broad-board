@@ -108,6 +108,7 @@ h1 {
     width: 100%;
     border: 2px solid black;
     border-radius: 10px;
+    touch-action: none;
 }
 
 .draw-tools-container {
