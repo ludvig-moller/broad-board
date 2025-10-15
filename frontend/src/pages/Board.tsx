@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { DrawProvider } from "../context/DrawContext";
 import DrawCanvas from "../components/DrawCanvas";
 import DrawTools from "../components/DrawTools";
@@ -6,7 +6,8 @@ import DrawTools from "../components/DrawTools";
 function Board() {
     const { boardId } = useParams();
 
-    if (!boardId) return; // Redirect to home page?
+    const navigate = useNavigate();
+    if (!boardId) return navigate("/");
 
     return (
         <>
