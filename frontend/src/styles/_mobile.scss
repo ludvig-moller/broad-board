@@ -1,6 +1,13 @@
 
 body {
     font-family: "Inter", sans-serif;
+    height: 100vh;
+}
+
+#root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 h1 {
@@ -94,6 +101,19 @@ h1 {
         justify-self: flex-end;
         width: 140px;
     }
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0px;
+}
+
+.main {
+    flex: 1;
 }
 
 .draw-canvas-container {
