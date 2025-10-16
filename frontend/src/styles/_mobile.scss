@@ -116,6 +116,19 @@ h1 {
     flex: 1;
 }
 
+.landing-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.landing-page-info {
+    font-size: medium;
+    text-align: center;
+}
+
 .draw-canvas-container {
     display: flex;
     justify-content: center;
