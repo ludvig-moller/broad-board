@@ -29,23 +29,44 @@ public class BoardWebSocketHandler(RequestDelegate next)
 
         using var clientSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-        var board = BoardStore.Boards.GetValueOrDefault(boardId);
+        var board = BoardStore.Boards.GetValueOrDefault(boardId)
+            ?? new Board(boardId);
 
-        if (board == null)
-        {
-            board = new Board { Id = boardId };
-            BoardStore.Boards[boardId] = board;
-        }
-
+        BoardStore.Boards[boardId] = board;
         board.Clients.Add(clientSocket);
 
-        BoardMessage initMessage = new() { Type = "init", Strokes = board.Strokes };
-        var initPayload = JsonSerializer.Serialize(initMessage, Config.Json.Options);
-        await clientSocket.SendAsync(Encoding.UTF8.GetBytes(initPayload), WebSocketMessageType.Text, true, CancellationToken.None);
+        try
+        {
+            BoardMessage initMessage = new() { Type = "init", Strokes = board.Strokes };
+            var initPayload = JsonSerializer.Serialize(initMessage, Config.Json.Options);
+            await clientSocket.SendAsync(Encoding.UTF8.GetBytes(initPayload), WebSocketMessageType.Text, true, CancellationToken.None);
 
-        await ReciveLoop(clientSocket, board);
+            await ReciveLoop(clientSocket, board);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Got Exeption in WebSocket: {ex}");
+        }
+        finally
+        {
+            board.Clients.Remove(clientSocket);
 
-        board.Clients.Remove(clientSocket);
+            if (clientSocket.State is WebSocketState.Open 
+                or WebSocketState.CloseReceived 
+                or WebSocketState.CloseSent)
+            {
+                try 
+                { 
+                    await clientSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None); 
+                }
+                catch (Exception ex) 
+                { 
+                    Console.WriteLine($"Got Exeption when closing socket: {ex}"); 
+                }
+            }
+
+            clientSocket.Dispose();
+        }
     }
 
     private static async Task ReciveLoop(WebSocket clientSocket, Board board)
@@ -53,20 +74,27 @@ public class BoardWebSocketHandler(RequestDelegate next)
         var buffer = new byte[4096];
         while (clientSocket.State == WebSocketState.Open) 
         {
-            var result = await clientSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            WebSocketReceiveResult result;
+            try
+            {
+                result = await clientSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            catch (WebSocketException)
+            {
+                break;
+            }
 
             if (result.MessageType == WebSocketMessageType.Close)
             {
                 await clientSocket.CloseAsync(
                     result.CloseStatus ?? WebSocketCloseStatus.NormalClosure,
-                    result.CloseStatusDescription, CancellationToken.None);
+                    result.CloseStatusDescription, 
+                    CancellationToken.None);
                 break;
             }
 
             var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
             await HandleMessage(clientSocket, message, board);
-            
         }
     }
 
