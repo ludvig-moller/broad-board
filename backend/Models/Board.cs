@@ -4,9 +4,41 @@ namespace backend.Models;
 
 public class Board
 {
-    public required string Id { get; set; }
-    public List<Stroke> Strokes { get; set; } = [];
-    public List<WebSocket> Clients { get; set; } = [];
+    public string Id { get; }
+    public List<Stroke> Strokes { get; }
+    public List<WebSocket> Clients { get; }
+    private Timer? _expirationTimer;
+    private readonly Action<string> _onExpired;
+
+    public Board(string id, Action<string> onExpired)
+    {
+        Id = id;
+
+        Strokes = [];
+        Clients = [];
+
+        _onExpired = onExpired;
+
+        StartExpirationTimer();
+    }
+    
+    public void StartExpirationTimer()
+    {
+        Timer? timer = null;
+        timer = new Timer(_ =>
+        { 
+            _onExpired?.Invoke(Id);
+            timer?.Dispose();
+        }, null, TimeSpan.FromHours(1), Timeout.InfiniteTimeSpan);
+
+        _expirationTimer = timer;
+    }
+
+    public void ResetExpiration()
+    {
+        _expirationTimer?.Dispose();
+        StartExpirationTimer();
+    }
 
     public void AddStroke(Stroke stroke)
     {

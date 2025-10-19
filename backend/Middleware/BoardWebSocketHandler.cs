@@ -30,7 +30,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         using var clientSocket = await context.WebSockets.AcceptWebSocketAsync();
 
         var board = BoardStore.Boards.GetValueOrDefault(boardId)
-            ?? new Board(boardId);
+            ?? new Board(boardId, BoardStore.ExpiredBoard);
 
         BoardStore.Boards[boardId] = board;
         board.Clients.Add(clientSocket);
