@@ -10,8 +10,10 @@ export default function StartBoardButton() {
     }
 
     return (
-        <button className="btn start-board" 
-        onClick={() => startBoard()}>
+        <button 
+            className="btn start-board" 
+            onClick={() => startBoard()}
+        >
             Start a board
         </button>
     );

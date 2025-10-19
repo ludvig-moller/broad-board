@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 
-function Header() {
+export default function Header() {
     const location = useLocation();
     const isBoardPage = location.pathname != "/";
 
@@ -16,5 +16,3 @@ function Header() {
         </header>
     );
 }
-
-export default Header;

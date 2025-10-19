@@ -1,6 +1,6 @@
 import { useDrawContext } from "../context/DrawContext";
 
-function DrawTools() {
+export default function DrawTools() {
     const { color, setColor, setLineWidth, clearBoard } = useDrawContext();
     const colors = ["black", "red", "green", "blue"];
 
@@ -15,13 +15,14 @@ function DrawTools() {
                 ))}
             </div>
             <input
-                className="slider" type="range" 
-                min={2} max={10} defaultValue={2} 
+                className="slider" 
+                type="range" 
+                min={2} 
+                max={10} 
+                defaultValue={2} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLineWidth(Number(e.target.value))}
             />
             <button className="btn clear-board" onClick={() => clearBoard()}>Clear</button>
         </aside>
     );
 }
-
-export default DrawTools;

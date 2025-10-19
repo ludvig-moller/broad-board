@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import { DrawProvider } from "../context/DrawContext";
 import DrawCanvas from "../components/DrawCanvas";
 import DrawTools from "../components/DrawTools";
 
-function Board() {
+export default function Board() {
     const { boardId } = useParams();
     const navigate = useNavigate();
 
@@ -21,5 +22,3 @@ function Board() {
         </>
     );
 }
-
-export default Board;

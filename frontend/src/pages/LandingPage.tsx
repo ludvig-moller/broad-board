@@ -1,6 +1,6 @@
 import StartBoardButton from "../components/StartBoardButton";
 
-function LandingPage() {
+export default function LandingPage() {
     return (
         <div className="landing-page-container">
             <StartBoardButton />
@@ -12,5 +12,3 @@ function LandingPage() {
         </div>
     );
 }
-
-export default LandingPage;
