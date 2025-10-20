@@ -35,6 +35,10 @@ h1 {
         background-color: black;
         color: white;
     }
+
+    &.active {
+        border-color: lightblue;
+    }
 }
 
 .slider {
@@ -146,6 +150,11 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 10px;
+}
+
+.draw-mode-container {
+    display: flex;
     gap: 10px;
 }
 

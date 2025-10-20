@@ -4,6 +4,8 @@ import type { Stroke, Point } from "../types/stroke";
 import { BoardWebSocket } from "../services/boardWebSocket";
 
 type DrawContextType = {
+    drawMode: "paint" | "erase";
+    setDrawMode: React.Dispatch<React.SetStateAction<"paint" | "erase">>;
     strokes: Stroke[];
     color: string;
     setColor: React.Dispatch<React.SetStateAction<string>>;
@@ -22,6 +24,7 @@ interface DrawProviderProps {
 }
 
 export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId }) => {
+    const [drawMode, setDrawMode] = useState<"paint" | "erase">("paint");
     const [strokes, setStrokes] = useState<Stroke[]>([]);
     const [color, setColor] = useState<string>("black");
     const [lineWidth, setLineWidth] = useState<number>(2);
@@ -69,6 +72,8 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
     }, []);
 
     const value: DrawContextType = {
+        drawMode,
+        setDrawMode,
         strokes, 
         color, 
         setColor, 
