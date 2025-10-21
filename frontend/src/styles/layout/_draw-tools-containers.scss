@@ -1,17 +1,56 @@
+@use "../abstracts" as *;
 
 .draw-tools-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
+    display: grid;
+    grid-gap: 12px;
+    padding: 12px;
 
-.draw-mode-container {
-    display: flex;
-    gap: 10px;
-}
+    .draw-mode-container {
+        display: flex;
+        gap: 10px;
 
-.color-container {
-    display: flex;
-    gap: 10px;
+        .btn {
+            flex: 1;
+        }
+
+        @include respond("sm") {
+            grid-column: 1;
+            grid-row: 1;
+        }
+    }
+
+    .color-container {
+        display: flex;
+        justify-content: space-around;
+
+        @include respond("sm") {
+            grid-column: 2;
+            grid-row: 1;
+
+            justify-content: space-between;
+        }
+
+        @include respond("md") {
+            justify-content: space-around;
+        }
+    }
+
+    .slider.line-width {
+        width: 99%;
+        align-self: center;
+
+        @include respond("sm") {
+            grid-column: 2;
+            grid-row: 2;
+        }
+    }
+
+    .btn.clear-board {
+        flex: 1;
+
+        @include respond("sm") {
+            grid-column: 1;
+            grid-row: 2;
+        }
+    }
 }

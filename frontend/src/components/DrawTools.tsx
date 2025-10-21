@@ -19,7 +19,7 @@ export default function DrawTools() {
                 ))}
             </div>
             <input
-                className="slider" 
+                className="slider line-width" 
                 type="range" 
                 min={2} 
                 max={10} 
