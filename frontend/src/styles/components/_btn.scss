@@ -1,0 +1,56 @@
+
+.btn {
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    height: 35px;
+    padding: 5px;
+    border: 2px solid black;
+    border-radius: 10px;
+    background-color: white;
+    color: black;
+    font-size: medium;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        cursor: pointer;
+        border-color: white;
+        background-color: black;
+        color: white;
+    }
+
+    &.active {
+        border-color: lightblue;
+    }
+}
+
+.btn.color {
+    width: 35px;
+    border-color: lightgray;
+    border-radius: 50%;
+
+    &.active {
+        border-color: lightblue;
+    }
+
+    &:hover {
+        border-color: gray;
+    }
+    &.active:hover {
+        border-color: cyan;
+    }
+
+    &.black {
+        background-color: black;
+    }
+    &.red {
+        background-color: red;
+    }
+    &.green {
+        background-color: green;
+    }
+    &.blue {
+        background-color: blue;
+    }
+}

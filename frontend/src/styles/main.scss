@@ -1,4 +1,16 @@
 @use "./vendor/reset";
 
-@use "./mobile";
-@use "./desktop";
+@use "./base/base";
+@use "./base/typography";
+
+@use "./components/btn";
+@use "./components/slider";
+
+@use "./layout/draw-canvas-container";
+@use "./layout/draw-tools-containers";
+@use "./layout/footer";
+@use "./layout/header";
+@use "./layout/main";
+
+@use "./pages/board";
+@use "./pages/landing";
