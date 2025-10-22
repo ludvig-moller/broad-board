@@ -6,6 +6,10 @@
 
     padding: 12px;
 
+    @include respond("md") {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
     .title {
         grid-column: 1;
         grid-row: 1;
