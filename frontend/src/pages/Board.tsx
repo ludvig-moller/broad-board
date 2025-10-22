@@ -14,11 +14,11 @@ export default function Board() {
     }, []);
 
     return (
-        <>
+        <div className="draw-container">
             <DrawProvider boardId={boardId ? boardId : ""}>
                 <DrawCanvas />
                 <DrawTools />
             </DrawProvider>
-        </>
+        </div>
     );
 }
