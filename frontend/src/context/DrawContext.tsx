@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import type { Stroke, Point } from "../types/stroke";
 import { BoardWebSocket } from "../services/boardWebSocket";
 
 type DrawContextType = {
+    userId: string | undefined;
     drawMode: "paint" | "erase";
     setDrawMode: React.Dispatch<React.SetStateAction<"paint" | "erase">>;
     strokes: Stroke[];
@@ -24,6 +26,7 @@ interface DrawProviderProps {
 }
 
 export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId }) => {
+    const [userId, setUserId] = useState<string>();
     const [drawMode, setDrawMode] = useState<"paint" | "erase">("paint");
     const [strokes, setStrokes] = useState<Stroke[]>([]);
     const [color, setColor] = useState<string>("black");
@@ -31,6 +34,8 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
     const webSocketRef = useRef<BoardWebSocket | null>(null);
 
     useEffect(() => {
+        //setUserId(uuidv4());
+
         const webSocket = new BoardWebSocket(boardId, {
             onStrokeAdded: (stroke) => addStroke(stroke, "remote"),
             onPointAddedToStroke: (strokeId, point) => addPointToStroke(strokeId, point, "remote"),
@@ -72,6 +77,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
     }, []);
 
     const value: DrawContextType = {
+        userId,
         drawMode,
         setDrawMode,
         strokes, 

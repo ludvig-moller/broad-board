@@ -5,7 +5,7 @@ import { useDrawContext } from "../context/DrawContext";
 import type { Point, Stroke } from "../types/stroke";
 
 export default function DrawCanvas() {
-    const { drawMode, strokes, color, lineWidth, addStroke, addPointToStroke } = useDrawContext();
+    const { userId, drawMode, strokes, color, lineWidth, addStroke, addPointToStroke } = useDrawContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [currentStrokeId, setCurrentStrokeId] = useState<string | null>(null);
 
@@ -60,6 +60,7 @@ export default function DrawCanvas() {
 
         const stroke: Stroke = {
             id,
+            userId,
             color,
             lineWidth,
             points: [point],
