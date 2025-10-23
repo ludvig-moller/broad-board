@@ -34,7 +34,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
     const webSocketRef = useRef<BoardWebSocket | null>(null);
 
     useEffect(() => {
-        //setUserId(uuidv4());
+        setUserId(uuidv4());
 
         const webSocket = new BoardWebSocket(boardId, {
             onStrokeAdded: (stroke) => addStroke(stroke, "remote"),
