@@ -26,15 +26,7 @@ export default function DrawTools() {
                 defaultValue={2} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLineWidth(Number(e.target.value))}
             />
-            <button 
-                className="btn undo" 
-                onClick={() => { 
-                    if (!userId) return; 
-                    undo(userId); 
-                }}
-            >
-                Undo
-            </button>
+            <button className="btn undo" onClick={() => userId && undo(userId)}>Undo</button>
             <button className="btn clear-board" onClick={() => clearBoard()}>Clear</button>
         </aside>
     );
