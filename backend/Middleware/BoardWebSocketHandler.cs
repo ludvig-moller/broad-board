@@ -1,10 +1,9 @@
-﻿using System.Net.WebSockets;
+﻿using backend.Messages;
+using backend.Models;
+using backend.Services;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-
-using backend.Services;
-using backend.Models;
-using backend.Messages;
 
 namespace backend.Middleware;
 
@@ -107,9 +106,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         }
         catch
         {
-            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Got invalid JSON." };
-            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
-            await clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
+            await SendErrorMessageToClient(clientSocket, "Got invalid JSON.");
             return;
         }
 
@@ -145,10 +142,10 @@ public class BoardWebSocketHandler(RequestDelegate next)
     { 
         if (message.Stroke == null) 
         {
-            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Type addStroke needs a stroke value but didn't get one." };
-            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
-            return clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
-        };
+            return SendErrorMessageToClient(
+                clientSocket,
+                "Type addStroke needs a stroke value but didn't get one.");
+        }
 
         board.AddStroke(message.Stroke);
 
@@ -159,10 +156,10 @@ public class BoardWebSocketHandler(RequestDelegate next)
     {
         if (message.StrokeId == null || message.Point == null)
         {
-            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Type addPointToStroke needs a strokeId and point value but didn't get them." };
-            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
-            return clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
-        };
+            return SendErrorMessageToClient(
+                clientSocket,
+                "Type addPointToStroke needs a strokeId and point value but didn't get them.");
+        }
 
         board.AddPointToStroke(message.StrokeId, message.Point);
 
@@ -173,9 +170,9 @@ public class BoardWebSocketHandler(RequestDelegate next)
     {
         if (message.UserId == null)
         {
-            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Type undo needs a userId but didn't get one." };
-            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
-            return clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
+            return SendErrorMessageToClient(
+                clientSocket, 
+                "Type undo needs a userId but didn't get one.");
         }
 
         board.RemoveUsersLastStroke(message.UserId);
@@ -199,5 +196,14 @@ public class BoardWebSocketHandler(RequestDelegate next)
         { 
             await client.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
         }
+    }
+
+    private static async Task SendErrorMessageToClient(WebSocket clientSocket, string errorMessage)
+    {
+        BoardMessage message = new() { Type = "error", ErrorMessage = errorMessage };
+        var payload = JsonSerializer.Serialize(message, Config.Json.Options);
+        var bytes = Encoding.UTF8.GetBytes(payload);
+
+        await clientSocket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
     }
 }
