@@ -15,6 +15,7 @@ type DrawContextType = {
     setLineWidth: React.Dispatch<React.SetStateAction<number>>;
     addStroke: (stroke: Stroke) => void;
     addPointToStroke: (id: string, point: Point) => void;
+    undo: (undoUserId: string) => void;
     clearBoard: () => void;
 }
 
@@ -39,6 +40,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         const webSocket = new BoardWebSocket(boardId, {
             onStrokeAdded: (stroke) => addStroke(stroke, "remote"),
             onPointAddedToStroke: (strokeId, point) => addPointToStroke(strokeId, point, "remote"),
+            onUndo: (undoUserId) => undo(undoUserId, "remote"),
             onClearBoard: () => clearBoard("remote"),
         });
 
@@ -46,7 +48,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         webSocket.connect();
 
         return () => webSocket.disconnect();
-    }, [boardId])
+    }, [boardId]);
 
     const addStroke = useCallback((stroke: Stroke, source: "local" | "remote" = "local") => {
         setStrokes((prev) => [...prev, stroke]);
@@ -65,6 +67,20 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
 
         if (source === "local") {
             webSocketRef.current?.sendAddPointToStroke(id, point);
+        }
+    }, []);
+
+    const undo = useCallback((undoUserId: string, source: "local" | "remote" = "local") => {
+        setStrokes((prev) => {
+            const reversedIndex = [...prev].reverse().findIndex(stroke => stroke.userId === undoUserId);
+            if (reversedIndex === -1) return prev;
+
+            const index = prev.length - 1 - reversedIndex;
+            return prev.filter((_, i) => i !== index);
+        });
+
+        if (source === "local") {
+            webSocketRef.current?.sendUndo(undoUserId);
         }
     }, []);
 
@@ -87,6 +103,7 @@ export const DrawProvider: React.FC<DrawProviderProps> = ({ children, boardId })
         setLineWidth, 
         addStroke, 
         addPointToStroke,
+        undo,
         clearBoard,
     }
 

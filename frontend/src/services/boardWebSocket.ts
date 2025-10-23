@@ -1,17 +1,19 @@
 import type { Stroke, Point } from "../types/stroke";
 
 export interface BoardMessage {
-    type: "init" | "addStroke" | "addPointToStroke" | "clearBoard" | "error";
+    type: "init" | "addStroke" | "addPointToStroke" | "undo" | "clearBoard" | "error";
     errorMessage?: string;
     strokes?: Stroke[];
     stroke?: Stroke;
     strokeId?: string;
     point?: Point;
+    userId?: string;
 }
 
 export interface BoardWebSocketCallbacks {
     onStrokeAdded?: (stroke: Stroke) => void;
     onPointAddedToStroke?: (strokeId: string, point: Point) => void;
+    onUndo?: (userId: string) => void;
     onClearBoard?: () => void;
 }
 
@@ -89,6 +91,15 @@ export class BoardWebSocket {
 
                 this.callbacks.onPointAddedToStroke?.(message.strokeId, message.point);
                 break;
+            
+            case "undo":
+                if (!message.userId) {
+                    console.warn("Recived board message type undo without userId.");
+                    return;
+                }
+
+                this.callbacks.onUndo?.(message.userId);
+                break;
 
             case "clearBoard":
                 this.callbacks.onClearBoard?.();
@@ -123,6 +134,15 @@ export class BoardWebSocket {
             type: "addPointToStroke",
             strokeId,
             point,
+        };
+
+        this.send(message);
+    }
+
+    sendUndo(userId: string): void {
+        const message: BoardMessage = {
+            type: "undo",
+            userId,
         };
 
         this.send(message);

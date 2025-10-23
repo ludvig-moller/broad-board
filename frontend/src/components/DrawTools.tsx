@@ -1,7 +1,7 @@
 import { useDrawContext } from "../context/DrawContext";
 
 export default function DrawTools() {
-    const { drawMode, setDrawMode, color, setColor, setLineWidth, clearBoard } = useDrawContext();
+    const { userId, drawMode, setDrawMode, color, setColor, setLineWidth, undo, clearBoard } = useDrawContext();
     const colors = ["black", "red", "green", "blue"];
 
     return (
@@ -26,6 +26,15 @@ export default function DrawTools() {
                 defaultValue={2} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLineWidth(Number(e.target.value))}
             />
+            <button 
+                className="btn undo" 
+                onClick={() => { 
+                    if (!userId) return; 
+                    undo(userId); 
+                }}
+            >
+                Undo
+            </button>
             <button className="btn clear-board" onClick={() => clearBoard()}>Clear</button>
         </aside>
     );
