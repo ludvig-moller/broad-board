@@ -10,4 +10,5 @@ public class BoardMessage
     public Stroke? Stroke { get; set; }
     public string? StrokeId { get; set; }
     public Point? Point { get; set; }
+    public string? UserId { get; set; }
 }

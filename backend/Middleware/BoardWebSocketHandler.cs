@@ -125,6 +125,10 @@ public class BoardWebSocketHandler(RequestDelegate next)
                 await HandleAddPointToStroke(clientSocket, message, board);
                 break;
 
+            case "undo":
+                await HandleUndo(clientSocket, message, board);
+                break;
+
             case "clearBoard":
                 await HandleClearBoard(clientSocket, message, board);
                 break;
@@ -161,6 +165,20 @@ public class BoardWebSocketHandler(RequestDelegate next)
         };
 
         board.AddPointToStroke(message.StrokeId, message.Point);
+
+        return BroadCastToOthers(board.Clients, clientSocket, message);
+    }
+
+    private static Task HandleUndo(WebSocket clientSocket, BoardMessage message, Board board)
+    {
+        if (message.UserId == null)
+        {
+            BoardMessage errorMessage = new() { Type = "error", ErrorMessage = "Type undo needs a userId but didn't get one." };
+            var errorPayload = JsonSerializer.Serialize(errorMessage, Config.Json.Options);
+            return clientSocket.SendAsync(Encoding.UTF8.GetBytes(errorPayload), WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+
+        board.RemoveUsersLastStroke(message.UserId);
 
         return BroadCastToOthers(board.Clients, clientSocket, message);
     }

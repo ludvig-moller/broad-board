@@ -54,6 +54,15 @@ public class Board
         return true;
     }
 
+    public bool RemoveUsersLastStroke(string userId)
+    {
+        var stroke = Strokes.LastOrDefault(s => s.UserId == userId);
+        if (stroke == null) return false;
+
+        Strokes.Remove(stroke);
+        return true;
+    }
+
     public void ClearBoard()
     {
         Strokes.Clear();
