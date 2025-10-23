@@ -1,3 +1,14 @@
+@use "../abstracts" as *;
+
+.draw-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    @include respond("lg") {
+        flex-direction: row;
+    }
+}
 
 .draw-canvas {
     width: 100%;
