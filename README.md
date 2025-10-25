@@ -14,3 +14,6 @@ Boards are managed on the backend and automatically deleted one hour after creat
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Sass](https://img.shields.io/badge/Sass-CC6699?style=for-the-badge&logo=sass&logoColor=white)
+
+## License
+[MIT](https://github.com/ludvig-moller/broad-board/blob/main/LICENSE)
