@@ -13,8 +13,8 @@ export default function DrawCanvas() {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        canvas.width = 1000;
-        canvas.height = 600;
+        canvas.width = 1280;
+        canvas.height = 720;
     }, []);
 
     useEffect(() => {
