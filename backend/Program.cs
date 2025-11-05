@@ -1,6 +1,15 @@
+using backend;
 using backend.Middleware;
+using backend.Services;
+using backend.Managers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<BoardDbContext>();
+builder.Services.AddScoped<BoardService>();
+
+builder.Services.AddSingleton<BoardManager>();
+
 var app = builder.Build();
 
 app.UseWebSockets();

@@ -1,5 +1,7 @@
-﻿using backend.Messages;
-using backend.Models;
+﻿using backend.Managers;
+using backend.Messages;
+using backend.Models.Dtos;
+using backend.Models.Entities;
 using backend.Services;
 using System.Net.WebSockets;
 using System.Text;
@@ -7,9 +9,10 @@ using System.Text.Json;
 
 namespace backend.Middleware;
 
-public class BoardWebSocketHandler(RequestDelegate next)
+public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
 {
     private readonly RequestDelegate _next = next;
+    private readonly BoardManager _manager = manager;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -28,19 +31,28 @@ public class BoardWebSocketHandler(RequestDelegate next)
 
         using var clientSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-        var board = BoardStore.Boards.GetValueOrDefault(boardId)
-            ?? new Board(boardId, BoardStore.ExpiredBoard);
+        var service = context.RequestServices.GetRequiredService<BoardService>();
 
-        BoardStore.Boards[boardId] = board;
-        board.Clients.Add(clientSocket);
+        var board = service.GetBoard(boardId);
+
+        if (board == null)
+        {
+            board = new Board(boardId);
+            service.AddBoard(board);
+        }
+
+        var session = _manager.GetOrCreateSession(boardId);
+        session.AddClient(clientSocket);
 
         try
         {
-            BoardMessage initMessage = new() { Type = "init", Strokes = board.Strokes };
+            var strokes = service.GetStrokes(board.Id).Select(s => new StrokeDto(s)).ToList();
+
+            BoardMessage initMessage = new() { Type = "init", Strokes = strokes };
             var initPayload = JsonSerializer.Serialize(initMessage, Config.Json.Options);
             await clientSocket.SendAsync(Encoding.UTF8.GetBytes(initPayload), WebSocketMessageType.Text, true, CancellationToken.None);
 
-            await ReciveLoop(clientSocket, board);
+            await ReciveLoop(clientSocket, service, board.Id);
         }
         catch (Exception ex)
         {
@@ -48,7 +60,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         }
         finally
         {
-            board.Clients.Remove(clientSocket);
+            session.RemoveClient(clientSocket);
 
             if (clientSocket.State is WebSocketState.Open 
                 or WebSocketState.CloseReceived 
@@ -68,7 +80,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         }
     }
 
-    private static async Task ReciveLoop(WebSocket clientSocket, Board board)
+    private async Task ReciveLoop(WebSocket clientSocket, BoardService service, string boardId)
     {
         var buffer = new byte[4096];
         while (clientSocket.State == WebSocketState.Open) 
@@ -93,11 +105,11 @@ public class BoardWebSocketHandler(RequestDelegate next)
             }
 
             var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            await HandleMessage(clientSocket, message, board);
+            await HandleMessage(clientSocket, service, message, boardId);
         }
     }
 
-    private static async Task HandleMessage(WebSocket clientSocket, string messageString, Board board)
+    private async Task HandleMessage(WebSocket clientSocket, BoardService service, string messageString, string boardId)
     {
         BoardMessage? message;
         try
@@ -115,19 +127,19 @@ public class BoardWebSocketHandler(RequestDelegate next)
         switch (message.Type) 
         {
             case "addStroke":
-                await HandleAddStroke(clientSocket, message, board);
+                await HandleAddStroke(clientSocket, service, message, boardId);
                 break;
 
             case "addPointToStroke":
-                await HandleAddPointToStroke(clientSocket, message, board);
+                await HandleAddPointToStroke(clientSocket, service, message, boardId);
                 break;
 
             case "undo":
-                await HandleUndo(clientSocket, message, board);
+                await HandleUndo(clientSocket, service, message, boardId);
                 break;
 
             case "clearBoard":
-                await HandleClearBoard(clientSocket, message, board);
+                await HandleClearBoard(clientSocket, service, message, boardId);
                 break;
 
             default:
@@ -138,7 +150,7 @@ public class BoardWebSocketHandler(RequestDelegate next)
         }
     }
 
-    private static Task HandleAddStroke(WebSocket clientSocket, BoardMessage message, Board board)
+    private Task HandleAddStroke(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
     { 
         if (message.Stroke == null) 
         {
@@ -147,12 +159,12 @@ public class BoardWebSocketHandler(RequestDelegate next)
                 "Type addStroke needs a stroke value but didn't get one.");
         }
 
-        board.AddStroke(message.Stroke);
+        service.AddStroke(boardId, message.Stroke.ToEntity(boardId));
 
-        return BroadCastToOthers(board.Clients, clientSocket, message);
+        return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private static Task HandleAddPointToStroke(WebSocket clientSocket, BoardMessage message, Board board)
+    private Task HandleAddPointToStroke(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
     {
         if (message.StrokeId == null || message.Point == null)
         {
@@ -161,12 +173,12 @@ public class BoardWebSocketHandler(RequestDelegate next)
                 "Type addPointToStroke needs a strokeId and point value but didn't get them.");
         }
 
-        board.AddPointToStroke(message.StrokeId, message.Point);
+        service.AddPointToStroke(message.StrokeId, message.Point.ToEntity(message.StrokeId));
 
-        return BroadCastToOthers(board.Clients, clientSocket, message);
+        return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private static Task HandleUndo(WebSocket clientSocket, BoardMessage message, Board board)
+    private Task HandleUndo(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
     {
         if (message.UserId == null)
         {
@@ -175,22 +187,24 @@ public class BoardWebSocketHandler(RequestDelegate next)
                 "Type undo needs a userId but didn't get one.");
         }
 
-        board.RemoveUsersLastStroke(message.UserId);
+        service.RemoveUsersLastStroke(message.UserId);
 
-        return BroadCastToOthers(board.Clients, clientSocket, message);
+        return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private static Task HandleClearBoard(WebSocket clientSocket, BoardMessage message, Board board)
+    private Task HandleClearBoard(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
     {
-        board.ClearBoard();
+        service.ClearBoard(boardId);
 
-        return BroadCastToOthers(board.Clients, clientSocket, message);
+        return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private static async Task BroadCastToOthers(List<WebSocket> clients, WebSocket sender, BoardMessage message)
+    private async Task BroadCastToOthers(WebSocket sender, BoardMessage message, string boardId)
     {
         var payload = JsonSerializer.Serialize(message, Config.Json.Options);
         var bytes = Encoding.UTF8.GetBytes(payload);
+
+        var clients = _manager.GetOrCreateSession(boardId).Clients;
 
         foreach (var client in clients.Where(c => c != sender && c.State == WebSocketState.Open)) 
         { 
