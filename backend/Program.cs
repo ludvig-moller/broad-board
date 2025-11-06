@@ -10,6 +10,8 @@ builder.Services.AddScoped<BoardService>();
 
 builder.Services.AddSingleton<BoardManager>();
 
+builder.Services.AddHostedService<BoardCleanupService>();
+
 var app = builder.Build();
 
 app.UseWebSockets();

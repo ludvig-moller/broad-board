@@ -7,8 +7,11 @@ public class BoardService(BoardDbContext context)
 {
     private readonly BoardDbContext _context = context;
 
-    public Board? GetBoard(string boardId) =>
-        _context.Boards.FirstOrDefault(b => b.Id == boardId);
+    public Board? GetBoard(string boardId) 
+        => _context.Boards.FirstOrDefault(b => b.Id == boardId);
+
+    public List<Board> GetBoards()
+        => _context.Boards.ToList();
 
     public void AddBoard(Board board)
     {
@@ -16,8 +19,33 @@ public class BoardService(BoardDbContext context)
         _context.SaveChanges();
     }
 
-    public List<Stroke> GetStrokes(string boardId) =>
-        _context.Strokes
+    public void RemoveBoard(string boardId)
+    {
+        var board = _context.Boards
+            .Include(b => b.Strokes)
+            .FirstOrDefault(b => b.Id == boardId);
+
+        if (board == null)
+            return;
+
+        _context.Boards.Remove(board);
+        _context.SaveChanges();
+    }
+
+    public bool ExtendBoardExpiration(string boardId, TimeSpan duration)
+    {
+        var board = _context.Boards.FirstOrDefault(b => b.Id == boardId);
+
+        if (board == null)
+            return false;
+
+        board.ExpirationDate = DateTime.UtcNow.Add(duration);
+        _context.SaveChanges();
+        return true;
+    }
+
+    public List<Stroke> GetStrokes(string boardId) 
+        => _context.Strokes
             .Where(s => s.BoardId == boardId)
             .Include(s => s.Points)
             .ToList();
