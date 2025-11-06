@@ -2,8 +2,8 @@
 
 A collaborative real-time whiteboard built with **.NET 8** and **React**
 
-BroadBoard lets multiple users draw together in real time on shared boards.  
-Boards are managed on the backend and automatically deleted one hour after creation when there's no active users.
+BroadBoard lets multiple users draw together in real time on shared boards.
+Boards are managed on the backend and automatically deleted 30 minutes after creation when there's no active users.
 
 ![broad-board-demo](https://github.com/user-attachments/assets/2a98861c-215f-4be2-9775-8f71716f7c6f)
 
