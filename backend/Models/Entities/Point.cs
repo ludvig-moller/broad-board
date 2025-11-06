@@ -8,5 +8,5 @@ public class Point
     public float X { get; set; } 
     public float Y { get; set; }
 
-    public required string StrokeId { get; set; }
+    public required Guid StrokeId { get; set; }
 }

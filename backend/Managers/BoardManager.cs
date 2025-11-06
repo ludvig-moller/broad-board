@@ -4,12 +4,12 @@ namespace backend.Managers;
 
 public class BoardManager
 {
-    private readonly ConcurrentDictionary<string, BoardSession> _sessions = [];
+    private readonly ConcurrentDictionary<Guid, BoardSession> _sessions = [];
 
-    public BoardSession GetOrCreateSession(string boardId)
+    public BoardSession GetOrCreateSession(Guid boardId)
         => _sessions.GetOrAdd(boardId, id => new BoardSession(id));
 
-    public void RemoveSession(string boardId)
+    public void RemoveSession(Guid boardId)
         => _sessions.TryRemove(boardId, out _);
 
 }

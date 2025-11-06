@@ -22,12 +22,14 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
             return;
         }
 
-        var boardId = context.Request.Query["boardId"].ToString();
-        if (string.IsNullOrEmpty(boardId)) 
+        string boardIdString = context.Request.Query["boardId"].ToString();
+        if (!Guid.TryParse(boardIdString, out Guid boardId)) 
         {
             context.Response.StatusCode = 400;
             return;
         }
+
+        Console.WriteLine("Board Id: " + boardId.ToString());
 
         using var clientSocket = await context.WebSockets.AcceptWebSocketAsync();
 
@@ -80,7 +82,7 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
         }
     }
 
-    private async Task ReciveLoop(WebSocket clientSocket, BoardService service, string boardId)
+    private async Task ReciveLoop(WebSocket clientSocket, BoardService service, Guid boardId)
     {
         var buffer = new byte[4096];
         while (clientSocket.State == WebSocketState.Open) 
@@ -109,7 +111,7 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
         }
     }
 
-    private async Task HandleMessage(WebSocket clientSocket, BoardService service, string messageString, string boardId)
+    private async Task HandleMessage(WebSocket clientSocket, BoardService service, string messageString, Guid boardId)
     {
         BoardMessage? message;
         try
@@ -150,7 +152,7 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
         }
     }
 
-    private Task HandleAddStroke(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
+    private Task HandleAddStroke(WebSocket clientSocket, BoardService service, BoardMessage message, Guid boardId)
     { 
         if (message.Stroke == null) 
         {
@@ -164,7 +166,7 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
         return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private Task HandleAddPointToStroke(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
+    private Task HandleAddPointToStroke(WebSocket clientSocket, BoardService service, BoardMessage message, Guid boardId)
     {
         if (message.StrokeId == null || message.Point == null)
         {
@@ -173,12 +175,12 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
                 "Type addPointToStroke needs a strokeId and point value but didn't get them.");
         }
 
-        service.AddPointToStroke(message.StrokeId, message.Point.ToEntity(message.StrokeId));
+        service.AddPointToStroke(message.StrokeId.Value, message.Point.ToEntity(message.StrokeId.Value));
 
         return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private Task HandleUndo(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
+    private Task HandleUndo(WebSocket clientSocket, BoardService service, BoardMessage message, Guid boardId)
     {
         if (message.UserId == null)
         {
@@ -187,19 +189,19 @@ public class BoardWebSocketHandler(RequestDelegate next, BoardManager manager)
                 "Type undo needs a userId but didn't get one.");
         }
 
-        service.RemoveUsersLastStroke(message.UserId);
+        service.RemoveUsersLastStroke(message.UserId.Value);
 
         return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private Task HandleClearBoard(WebSocket clientSocket, BoardService service, BoardMessage message, string boardId)
+    private Task HandleClearBoard(WebSocket clientSocket, BoardService service, BoardMessage message, Guid boardId)
     {
         service.ClearBoard(boardId);
 
         return BroadCastToOthers(clientSocket, message, boardId);
     }
 
-    private async Task BroadCastToOthers(WebSocket sender, BoardMessage message, string boardId)
+    private async Task BroadCastToOthers(WebSocket sender, BoardMessage message, Guid boardId)
     {
         var payload = JsonSerializer.Serialize(message, Config.Json.Options);
         var bytes = Encoding.UTF8.GetBytes(payload);

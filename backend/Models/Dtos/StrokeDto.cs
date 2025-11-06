@@ -5,8 +5,8 @@ namespace backend.Models.Dtos;
 
 public class StrokeDto
 {
-    public required string Id { get; set; }
-    public string? UserId { get; set; }
+    public required Guid Id { get; set; }
+    public Guid? UserId { get; set; }
     public required string Color { get; set; }
     public required int LineWidth { get; set; }
     public List<PointDto> Points { get; set; } = [];
@@ -23,7 +23,7 @@ public class StrokeDto
         Points = s.Points.Select(p => new PointDto(p)).ToList();
     }
 
-    public Stroke ToEntity(string boardId)
+    public Stroke ToEntity(Guid boardId)
         => new Stroke
         {
             Id = Id,

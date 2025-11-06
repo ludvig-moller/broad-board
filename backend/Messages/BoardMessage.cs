@@ -8,7 +8,7 @@ public class BoardMessage
     public string? ErrorMessage { get; set; }
     public List<StrokeDto>? Strokes { get; set; }
     public StrokeDto? Stroke { get; set; }
-    public string? StrokeId { get; set; }
+    public Guid? StrokeId { get; set; }
     public PointDto? Point { get; set; }
-    public string? UserId { get; set; }
+    public Guid? UserId { get; set; }
 }

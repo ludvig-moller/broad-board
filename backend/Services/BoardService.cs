@@ -7,7 +7,7 @@ public class BoardService(BoardDbContext context)
 {
     private readonly BoardDbContext _context = context;
 
-    public Board? GetBoard(string boardId) 
+    public Board? GetBoard(Guid boardId) 
         => _context.Boards.FirstOrDefault(b => b.Id == boardId);
 
     public List<Board> GetBoards()
@@ -19,7 +19,7 @@ public class BoardService(BoardDbContext context)
         _context.SaveChanges();
     }
 
-    public void RemoveBoard(string boardId)
+    public void RemoveBoard(Guid boardId)
     {
         var board = _context.Boards
             .Include(b => b.Strokes)
@@ -32,7 +32,7 @@ public class BoardService(BoardDbContext context)
         _context.SaveChanges();
     }
 
-    public bool ExtendBoardExpiration(string boardId, TimeSpan duration)
+    public bool ExtendBoardExpiration(Guid boardId, TimeSpan duration)
     {
         var board = _context.Boards.FirstOrDefault(b => b.Id == boardId);
 
@@ -44,13 +44,13 @@ public class BoardService(BoardDbContext context)
         return true;
     }
 
-    public List<Stroke> GetStrokes(string boardId) 
+    public List<Stroke> GetStrokes(Guid boardId) 
         => _context.Strokes
             .Where(s => s.BoardId == boardId)
             .Include(s => s.Points)
             .ToList();
 
-    public bool AddStroke(string boardId, Stroke stroke)
+    public bool AddStroke(Guid boardId, Stroke stroke)
     {
         var board = _context.Boards.FirstOrDefault(b => b.Id == boardId);
 
@@ -62,7 +62,7 @@ public class BoardService(BoardDbContext context)
         return true;
     }
 
-    public bool AddPointToStroke(string strokeId, Point point)
+    public bool AddPointToStroke(Guid strokeId, Point point)
     {
         var stroke = _context.Strokes.FirstOrDefault(s => s.Id == strokeId);
 
@@ -74,7 +74,7 @@ public class BoardService(BoardDbContext context)
         return true;
     }
 
-    public bool RemoveUsersLastStroke(string userId)
+    public bool RemoveUsersLastStroke(Guid userId)
     {
         var stroke = _context.Strokes.LastOrDefault(s => s.UserId == userId);
 
@@ -86,7 +86,7 @@ public class BoardService(BoardDbContext context)
         return true;
     }
 
-    public void ClearBoard(string boardId)
+    public void ClearBoard(Guid boardId)
     {
         _context.Strokes.RemoveRange(_context.Strokes.Where(s => s.BoardId == boardId));
         _context.SaveChanges();

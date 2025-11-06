@@ -14,7 +14,7 @@ public class PointDto
         Y = p.Y;
     }
 
-    public Point ToEntity(string strokeId)
+    public Point ToEntity(Guid strokeId)
         => new Point 
         { 
             StrokeId = strokeId,
